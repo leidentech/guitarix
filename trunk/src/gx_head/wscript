@@ -91,6 +91,7 @@ def build(bld):
         './engine/ladspaback.cpp',
         './engine/tunerswitcher.cpp',
         './engine/jsonrpc.cpp',
+        './engine/gx_metadata.cpp',
         './engine/gx_jack.cpp',
         './engine/gx_preset.cpp',
         './engine/gx_internal_ui_plugins.cpp',
@@ -207,8 +208,8 @@ def build(bld):
         sources_engine.append("engine/avahi_register.cpp")
     sources = sources_engine + sources_engine_shared + sources_gui
     uselib = ['JACK', 'SNDFILE', 'GTHREAD', 'GMODULE_EXPORT', 'CURL', 'LIBLO',
-              'GTK2', 'GTKMM', 'GIOMM', 'FFTW3', 'LRDF', 'LILV', 'BOOST_SYSTEM','BOOST_IOSTREAMS',
-              'ZITA_CONVOLVER','ZITA_RESAMPLER']
+              'GTK2', 'GTKMM', 'GIOMM', 'FFTW3', 'LRDF', 'LILV', 'BOOST_SYSTEM', 'BOOST_IOSTREAMS',
+              'ZITA_CONVOLVER', 'ZITA_RESAMPLER', 'TAGLIB']
     if bld.env.HAVE_AVAHI:
         uselib += ['AVAHI_GOBJECT', 'AVAHI_GLIB', 'AVAHI_CLIENT']
     if bld.env.HAVE_BLUEZ:

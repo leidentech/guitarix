@@ -23,8 +23,7 @@
  *
  * --------------------------------------------------------------------------
  */
-
-
+#include "gx_metadata.h"
 
 #define MAXRECSIZE 131072
 #define MAXFILESIZE INT_MAX-MAXRECSIZE // 2147352576  //2147483648-MAXRECSIZE
@@ -79,7 +78,6 @@ SCapture::~SCapture() {
 }
 
 inline std::string SCapture::get_ffilename() {
-    struct stat buffer;
     struct stat sb;
     std::string pPath = getenv("HOME");
     is_wav = int(fformat) ? false : true;
@@ -87,41 +85,53 @@ inline std::string SCapture::get_ffilename() {
     if (!(stat(pPath.c_str(), &sb) == 0 && S_ISDIR(sb.st_mode))) {
         mkdir(pPath.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
     }
-    std::string name = "guitarix_session0.wav";
+     std::string defaultName = "guitarix_";
+    // Get current time
+    std::time_t t = std::time(nullptr);
+    std::tm* now = std::localtime(&t);
+    // Format datetime string
+    char datetime[16]; // Enough space for "YYYYMMDD-HHMMSS"
+    std::strftime(datetime, sizeof(datetime), "%Y%m%d-%H%M%S", now);
+    std::string extension = ".wav";
     switch(int(fformat)) {
       case(0) :
           break;
       case(1) :
           name = "guitarix_session0.ogg";
+          extension = ".ogg";
           break;
       case(2) :
           name = "guitarix_session0.w64";
+          extension = ".w64";
           break;
       case(3) :
-          name = "guitarix_session0.flac";
+          extension = ".flac";
           break;
       default :
           break;
     }
-    int i = 0;
-    while (stat ((pPath+name).c_str(), &buffer) == 0) {
-        name.replace(name.begin()+16,name.end()-4,gx_system::to_string(i)); 
-        i+=1;
-    }
+    std::string name = defaultName + std::string(datetime) + extension;
     return pPath+name;
 }
 
 void SCapture::disc_stream() {
+    std::string filename;
     for (;;) {
         sem_wait(&m_trig);
         if (!recfile) {
-            recfile = open_stream(get_ffilename());
+            filename = get_ffilename();
+            recfile = open_stream(filename);
         }
         save_to_wave(recfile, tape, savesize);
         filesize +=savesize;
         if ((!keep_stream && recfile) || (filesize >MAXFILESIZE && is_wav)) {
             close_stream(&recfile);
             filesize = 0;
+            //Write tags and settings file
+            ParamMap& pmap = engine.get_param();
+            gx_engine::MetadataExtractor meta(pmap);
+            meta.writeMetadataFile(filename);
+            meta.writeCommentTag(filename);
         }
     }
 }

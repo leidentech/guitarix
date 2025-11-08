@@ -108,6 +108,7 @@ using namespace std;
 #include "ParallelThread.h"
 #include "gx_resampler.h"
 #include "gx_convolver.h"
+#include "gx_metadata.h"
 #include "gx_pitch_tracker.h"
 #include "gx_pluginloader.h"
 #include "gx_modulesequencer.h"
